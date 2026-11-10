@@ -64,7 +64,13 @@
     .exercise-count{color:var(--muted);font-size:11px;font-weight:500;margin-left:5px}.exercise-add{border:1px solid #3b5140;background:#243127;color:var(--accent);border-radius:13px;padding:0 13px;height:38px;flex-shrink:0;font-size:12px;font-weight:700}
     .exercise-preview{margin-top:11px;display:grid;gap:6px}.exercise-preview-row{color:#aab5b2;font-size:12px;line-height:1.6;overflow-wrap:anywhere}.exercise-preview-row strong{color:#e6ece6;font-weight:640}
     .calendar-card{background:var(--surface);border:1px solid var(--line);border-radius:25px;padding:18px;margin:22px 0 17px;min-width:0}.calendar-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}.calendar-month{font-size:16px;font-weight:730;letter-spacing:-.4px}.calendar-actions{display:flex;gap:7px;align-items:center}.calendar-step{width:34px;height:34px;border:1px solid #343c40;border-radius:11px;background:#20272a;color:#d4dddb;display:grid;place-items:center}.calendar-step svg{height:17px;width:17px}.calendar-step:disabled{opacity:.25}.calendar-back .icon{transform:rotate(180deg)}.calendar-today{background:none;border:none;color:var(--accent);font-size:12px;padding:7px}
-    .calendar-week,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.calendar-week{text-align:center;color:var(--muted);font-size:11px;padding-bottom:8px}.calendar-day{position:relative;border:1px solid transparent;border-radius:13px;background:none;color:#d9dddb;min-height:45px;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-variant-numeric:tabular-nums;padding:5px 0;gap:3px}.calendar-day.selected{background:#2a3929;border-color:#45613c;color:var(--accent);font-weight:720}.calendar-day.is-today:not(.selected){border-color:#425346}.calendar-day:disabled{color:#414b4d}.calendar-placeholder{min-height:45px}.day-dots{display:flex;gap:3px;justify-content:center;height:4px}.dot{height:4px;width:4px;border-radius:50%;background:#c5f28a}.dot.weight-dot{background:#8c9fb5}.dot.rest-dot{background:#74807c}
+    .calendar-week,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.calendar-week{text-align:center;color:var(--muted);font-size:11px;padding-bottom:8px}.calendar-day{position:relative;border:1px solid transparent;border-radius:13px;background:none;color:#d9dddb;min-height:67px;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-size:13px;font-variant-numeric:tabular-nums;padding:6px 1px 4px;gap:5px}
+    .calendar-day.selected{background:#2a3929;border-color:#45613c;color:var(--accent);font-weight:720}.calendar-day.is-today:not(.selected){border-color:#425346}.calendar-day:disabled{color:#414b4d}.calendar-placeholder{min-height:67px}
+    .day-parts{width:100%;max-width:36px;min-height:15px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;justify-items:center;gap:2px}
+    .part-mark{width:100%;max-width:16px;aspect-ratio:1;display:grid;place-items:center;white-space:nowrap;border-radius:5px;background:#283629;border:1px solid #4c6645;color:#caefa6;font-size:10px;font-weight:700;line-height:1;letter-spacing:0}
+    .part-mark.is-rest{background:#222a2b;border-color:#3b4545;color:#acb9b1}.part-mark.is-extra{background:#20282a;border-color:#384344;color:#a1aeaa;font-size:9px}
+    .calendar-day.selected .part-mark:not(.is-rest):not(.is-extra){background:#354b30;border-color:#769d65;color:#def7bb}
+    @media(max-width:360px){.calendar-week,.calendar-grid{gap:3px}.calendar-card{padding:14px}.calendar-day{min-height:67px;padding:6px 0 4px}.part-mark{font-size:9px;border-radius:4px}}
     .calendar-detail{border-top:1px solid #2a3235;margin-top:15px;padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:9px;min-width:0}.calendar-detail-main{min-width:0}.calendar-detail-title{font-size:13px;font-weight:680}.calendar-detail-desc{font-size:11px;color:var(--muted);line-height:1.6;margin-top:5px;overflow-wrap:anywhere}.calendar-edit{border:1px solid #3a513a;background:#273627;color:var(--accent);border-radius:12px;min-height:37px;padding:0 12px;font-size:12px;font-weight:700;flex-shrink:0}
     @media(min-width:650px){.app{padding-top:38px}.topbar{margin-bottom:45px}.modal-backdrop{align-items:center}.sheet{border-radius:28px;border-bottom:1px solid #3a4144;padding-bottom:26px;max-height:85svh}}
     @media(max-width:650px){body:has(.field-input:focus) .bottom-nav{opacity:0;pointer-events:none;transform:translate(-50%,85px)}}
@@ -185,8 +191,9 @@
 (()=>{
   'use strict';
   const KEY='lianji-fitness-v1'; // Keep the original storage key so existing iPhone data remains intact.
-  const APP_VERSION='1.1.0';
+  const APP_VERSION='1.1.1';
   const PARTS=['胸','背','肩','腿','手臂','核心','有氧','休息'];
+  const PART_SHORT={'胸':'胸','背':'背','肩':'肩','腿':'腿','手臂':'臂','核心':'核','有氧':'氧','休息':'休'};
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const icon=(id,cls='icon')=>`<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
@@ -329,8 +336,13 @@
     const placeholders=Array(offset).fill('<span class="calendar-placeholder" aria-hidden="true"></span>').join('');
     const cells=Array.from({length:days},(_,i)=>{
       const day=i+1,date=`${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`,e=byDate.get(date),future=date>today();
-      const marks=e?`<span class="day-dots">${isTraining(e)?'<i class="dot"></i>':''}${e.weight!==null?'<i class="dot weight-dot"></i>':''}${e.parts.includes('休息')?'<i class="dot rest-dot"></i>':''}</span>`:'<span class="day-dots"></span>';
-      return `<button type="button" class="calendar-day ${date===calendarSelected?'selected':''} ${date===today()?'is-today':''}" data-calendar-day="${date}" ${future?'disabled':''} aria-pressed="${date===calendarSelected}" aria-label="${month}月${day}日${e?'，有记录':''}">${day}${marks}</button>`;
+      // 日历只展示训练部位，不把体重记录绘制成灰点。每个部位是一字小方框。
+      const recordedParts=e?.parts?.length?e.parts:(e?.exercises?.length?['训练']:[]);
+      // 最多显示四个方框；如果超过四个，显示前三项及数量提示，点日期可查看完整信息。
+      const visibleParts=recordedParts.length>4?recordedParts.slice(0,3):recordedParts;
+      const marks=`<span class="day-parts" aria-hidden="true">${visibleParts.map(part=>`<span class="part-mark ${part==='休息'?'is-rest':''}">${PART_SHORT[part]||'练'}</span>`).join('')}${recordedParts.length>4?`<span class="part-mark is-extra">+${recordedParts.length-3}</span>`:''}</span>`;
+      const spoken=e?(e.parts.length?`，训练：${e.parts.join('、')}`:e.exercises?.length?'，有动作记录':e.weight!==null?'，有体重记录':''):'';
+      return `<button type="button" class="calendar-day ${date===calendarSelected?'selected':''} ${date===today()?'is-today':''}" data-calendar-day="${date}" ${future?'disabled':''} aria-pressed="${date===calendarSelected}" aria-label="${month}月${day}日${esc(spoken)}">${day}${marks}</button>`;
     }).join('');
     $('calendar-grid').innerHTML=placeholders+cells;
     const selectedDate=calendarSelected,entry=byDate.get(selectedDate);

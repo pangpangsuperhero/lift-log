@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0A0C0F">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="练记">
+  <meta name="description" content="免费、离线、私密的个人训练与体重记录。">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <title>练记 · 我的训练日记</title>
+  <style>
+    :root { color-scheme:dark; --bg:#0a0c0f; --surface:#13171b; --surface-2:#191e23; --line:#2a3036; --text:#f3f5f3; --sub:#a0a8ab; --muted:#717a80; --accent:#c5f28a; --accent-deep:#1d2b15; --danger:#f1aaa3; --r:25px; --shadow:0 20px 70px rgba(0,0,0,.17) }
+    *,*::before,*::after{box-sizing:border-box}
+    html{background:var(--bg); scroll-behavior:smooth}
+    body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","PingFang SC","Microsoft YaHei",sans-serif; background:radial-gradient(ellipse 60% 22% at 90% 0%,rgba(194,243,135,.045),transparent 75%),var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent;min-height:100svh}
+    button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button,input,textarea{outline-offset:3px}
+    button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent)}
+    [hidden]{display:none!important}svg{display:block}a{color:var(--accent)}
+    .app{max-width:540px;margin:0 auto;padding:calc(22px + env(safe-area-inset-top,0px)) 20px calc(116px + env(safe-area-inset-bottom,0px))}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:40px}
+    .brand{display:flex;align-items:center;gap:11px}.mark{height:38px;width:38px;display:grid;place-items:center;border-radius:13px;background:var(--accent);color:#172015}
+    .brand-title{font-size:18px;font-weight:760;letter-spacing:-.9px;line-height:1.15}.brand-en{font-size:9px;letter-spacing:2.35px;color:var(--muted);margin-top:4px;font-weight:680}
+    .icon-btn{display:grid;place-items:center;width:44px;height:44px;border-radius:15px;color:var(--sub);border:1px solid var(--line);background:#13171b;transition:.2s ease}
+    .icon-btn:active,.nav-btn:active,.chip:active,.primary:active,.soft-btn:active{transform:scale(.97)}
+    .icon{width:19px;height:19px;stroke:currentColor;stroke-width:1.85;fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .eyebrow{font-size:11px;font-weight:750;letter-spacing:1.65px;color:var(--accent)}
+    h1,h2,h3,p{margin:0}h1{font-size:31px;line-height:1.26;letter-spacing:-1.15px;font-weight:750;margin:10px 0 9px}h2{font-size:17px;letter-spacing:-.45px;font-weight:730}h3{font-size:15px;font-weight:700}
+    .subline{color:var(--sub);font-size:13px;line-height:1.7}.section-head{display:flex;justify-content:space-between;align-items:center;margin:28px 0 15px}.label-mini{color:var(--muted);font-size:12px}
+    .hero{background:linear-gradient(135deg,#1b2320 0%,#151c1a 57%,#12191a 100%);border:1px solid #2a392e;border-radius:30px;padding:24px;position:relative;overflow:hidden;margin-top:27px;box-shadow:var(--shadow)}
+    .hero:after{content:"";position:absolute;height:200px;width:200px;right:-105px;top:-128px;background:#b9f085;border-radius:50%;filter:blur(70px);opacity:.11;pointer-events:none}
+    .hero-top{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#bfc9bd;font-size:12px}
+    .goal-pill{border-radius:99px;border:1px solid rgba(199,247,154,.25);color:#d9f5c9;background:rgba(197,242,138,.07);padding:8px 11px;font-size:12px;display:flex;gap:5px;align-items:center;white-space:nowrap}
+    .hero-number{font-size:62px;letter-spacing:-3px;line-height:1.25;font-weight:760;margin-top:23px;font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}.hero-unit{font-size:19px;color:#b3bfab;font-weight:550;letter-spacing:0;margin-left:8px}
+    .hero-bottom{display:flex;justify-content:space-between;gap:10px;color:#aebbb0;font-size:12px;margin-top:9px}.hero-bottom strong{color:var(--text);font-weight:650}
+    .progress{height:5px;border-radius:99px;background:#344037;overflow:hidden;margin-top:17px}.progress-fill{height:100%;background:var(--accent);border-radius:inherit;transition:width .45s ease;width:0}
+    .mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:11px}.stat{background:var(--surface);border:1px solid var(--line);border-radius:21px;padding:20px;min-height:105px}.stat-name{font-size:12px;color:var(--sub)}.stat-value{font-size:27px;font-weight:740;letter-spacing:-1px;margin-top:11px;font-variant-numeric:tabular-nums}.stat-unit{font-size:12px;color:var(--muted);margin-left:5px;font-weight:500}
+    .chart-card,.recent-card,.form-card,.settings-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}.chart-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.chart-top .muted{margin-top:7px;color:var(--muted);font-size:12px}
+    .range-picker{display:flex;padding:3px;background:#22272b;border-radius:99px;gap:2px;flex-shrink:0}.range-btn{border:0;background:none;color:var(--muted);border-radius:99px;font-size:11px;min-height:29px;padding:0 10px}.range-btn.active{background:#394339;color:#e8f6e5}
+    .chart-box{margin-top:13px;min-height:190px;display:flex;align-items:center;justify-content:center}.chart-box svg{width:100%;height:auto;overflow:visible}.chart-empty{text-align:center;color:var(--muted);font-size:13px;line-height:1.8;padding:30px 14px}.chart-empty .empty-graph{height:55px;display:grid;place-items:center;margin-bottom:4px;color:#3d4c3e}
+    .link-btn{border:0;background:none;color:var(--accent);font-size:12px;font-weight:600;padding:8px 0}.recent-list{display:grid;gap:0}.recent-row{display:flex;align-items:center;gap:12px;padding:15px 0;border-top:1px solid var(--line);text-align:left}.recent-row:first-child{border-top:0}.recent-icon{width:39px;height:39px;border-radius:14px;background:#242e27;color:var(--accent);display:grid;place-items:center;flex-shrink:0}.recent-main{min-width:0;flex:1}.recent-title{font-size:14px;font-weight:650}.recent-date{font-size:11px;color:var(--muted);margin-top:5px}.recent-right{font-size:12px;color:var(--sub)}
+    .view-intro{margin-bottom:23px}.form-card{margin-bottom:13px}.form-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.badge-neutral{font-size:11px;color:var(--sub);background:#20262a;border-radius:100px;padding:7px 10px}
+    .field-title{font-size:13px;font-weight:650;margin-bottom:10px}.help{font-size:12px;line-height:1.6;color:var(--muted);margin-top:8px}.field-input{background:#1c2227;border:1px solid #30383e;border-radius:16px;color:var(--text);height:52px;width:100%;padding:0 15px;font-size:15px;appearance:none;-webkit-appearance:none}.field-input:focus{border-color:#94b479}.field-input::placeholder,textarea::placeholder{color:#6e787d}input[type=date]{color-scheme:dark}input[type=date]::-webkit-calendar-picker-indicator{opacity:.65}
+    .field{margin-bottom:23px}.field:last-child{margin-bottom:0}
+    .chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.chip{min-width:0;border:1px solid #30363b;background:#1d2327;color:#c2c8c8;min-height:48px;border-radius:15px;font-size:13px;font-weight:600;transition:background .15s,color .15s,border-color .15s,transform .12s}.chip.selected{background:var(--accent);color:#1c2818;border-color:var(--accent)}
+    .note-toggle{display:flex;gap:5px;align-items:center;border:0;background:none;color:var(--sub);padding:2px 0;font-size:13px}.note-toggle svg{height:15px;width:15px}.note-wrap{margin-top:11px}textarea.field-input{min-height:88px;height:auto;resize:vertical;padding:13px 15px;line-height:1.6}
+    .primary{background:var(--accent);color:#1a2415;border:0;border-radius:18px;min-height:56px;font-size:15px;font-weight:760;width:100%;display:flex;align-items:center;justify-content:center;gap:9px;transition:transform .12s,filter .15s}.primary:hover{filter:brightness(1.04)}.primary:disabled{opacity:.4}
+    .save-hint{text-align:center;color:var(--muted);font-size:11px;margin-top:11px;line-height:1.65}.inline-status{border-radius:13px;background:rgba(197,242,138,.07);border:1px solid rgba(197,242,138,.18);color:#cfdfbd;padding:11px 13px;font-size:12px;line-height:1.6;margin:0 0 14px}
+    .filter{display:flex;gap:6px;margin:18px 0 20px;background:var(--surface);padding:5px;border-radius:18px;border:1px solid var(--line)}.filter-btn{flex:1;min-height:40px;border:0;background:none;color:var(--muted);border-radius:13px;font-size:13px;font-weight:630}.filter-btn.active{background:#2c3435;color:var(--text)}
+    .history-list{display:grid;gap:12px}.history-card{background:var(--surface);border:1px solid var(--line);border-radius:23px;padding:19px}.hist-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.hist-date{font-weight:720;font-size:15px}.hist-week{font-size:11px;color:var(--muted);margin-top:5px}.hist-controls{display:flex;gap:6px}.hist-control{width:33px;height:33px;display:grid;place-items:center;background:#20262a;color:var(--sub);border:1px solid #2a3137;border-radius:11px}.hist-control svg{width:16px;height:16px}.hist-control.delete{color:#dcaaa6}
+    .hist-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:17px}.tag{background:#252f29;border:1px solid #334637;border-radius:99px;color:#d2ecc3;font-size:12px;padding:7px 11px}.tag.rest{background:#24282b;border-color:#3b4045;color:#c2c6c6}.tag.weight{background:#262b32;border-color:#36404a;color:#dae3e6}.hist-note{color:var(--muted);font-size:12px;line-height:1.7;margin-top:12px;overflow-wrap:anywhere}
+    .empty{background:var(--surface);border:1px dashed #343b3e;border-radius:var(--r);padding:44px 25px;text-align:center}.empty-icon{width:50px;height:50px;border-radius:17px;background:#242c27;color:var(--accent);display:grid;place-items:center;margin:0 auto 18px}.empty-title{font-size:15px;font-weight:700}.empty-desc{font-size:12px;color:var(--muted);line-height:1.8;margin-top:8px}.soft-btn{min-height:40px;border:1px solid #3f5143;background:#273328;color:var(--accent);border-radius:13px;padding:0 14px;font-size:12px;font-weight:650;margin-top:19px}
+    .bottom-nav{position:fixed;bottom:calc(13px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),500px);height:75px;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;border:1px solid rgba(69,77,77,.75);border-radius:26px;background:rgba(22,27,30,.95);box-shadow:0 10px 45px rgba(0,0,0,.35);padding:7px 10px;z-index:15;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+    .nav-btn{border:0;background:transparent;color:#8b969a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:60px;border-radius:20px;font-size:10px;letter-spacing:.2px;transition:.12s}.nav-btn .icon{width:20px;height:20px}.nav-btn.active{color:var(--accent)}.nav-btn.nav-add{height:60px;width:75%;justify-self:center;background:#2d3b2b;color:var(--accent)}.nav-btn.nav-add.active{background:var(--accent);color:#202f18}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center;z-index:100;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}.sheet{background:#191e22;border:1px solid #3a4144;border-bottom:0;border-radius:28px 28px 0 0;padding:11px 22px calc(24px + env(safe-area-inset-bottom,0px));width:min(100%,540px);max-height:87svh;overflow-y:auto;box-shadow:0 -15px 55px rgba(0,0,0,.4)}.sheet-handle{width:38px;height:4px;border-radius:99px;background:#495053;margin:0 auto 22px}.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:19px}.sheet-title{font-size:21px;font-weight:740}.sheet-desc{font-size:12px;line-height:1.7;color:var(--sub);margin:8px 0 18px}.sheet .field{margin-bottom:19px}.settings-row{display:flex;justify-content:space-between;align-items:center;text-align:left;width:100%;border:0;border-top:1px solid #32393d;background:none;color:var(--text);padding:16px 0;gap:12px}.settings-row strong{font-size:14px;font-weight:650}.settings-row span{font-size:11px;color:var(--muted);display:block;margin-top:5px}.settings-row .icon{color:var(--sub);flex-shrink:0}.settings-row.danger strong{color:var(--danger)}.row-text{flex:1}.sheet-footer{font-size:11px;color:var(--muted);line-height:1.8;margin-top:16px}.secondary{background:#292f33;color:var(--text);border:1px solid #3c4547;border-radius:16px;min-height:51px;font-size:14px;font-weight:660;padding:0 16px}.danger-btn{background:#e7a29d;color:#321b1c}
+    .modal-buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:20px}.modal-buttons button{width:100%}.toast{position:fixed;left:50%;bottom:calc(106px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:#e7efe4;color:#182119;border-radius:100px;padding:12px 20px;font-size:12px;font-weight:680;white-space:nowrap;box-shadow:0 10px 35px #0007;z-index:110;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis}.toast.show{opacity:1;transform:translate(-50%,0)}
+    .no-scroll{overflow:hidden}.empty-state-note{font-size:12px;color:var(--muted);text-align:center;padding:15px 0 0;line-height:1.65}.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media(min-width:650px){.app{padding-top:38px}.topbar{margin-bottom:45px}.modal-backdrop{align-items:center}.sheet{border-radius:28px;border-bottom:1px solid #3a4144;padding-bottom:26px;max-height:85svh}}
+    @media(max-width:365px){.hero-number{font-size:53px}.chips{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.chip{min-height:44px;font-size:12px}.hero{padding:20px}.stat{padding:15px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3-7 4 14 3-7h4"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="m19.4 15 .1.1 1.4 1.1-1.5 2.6-1.7-.6a8.6 8.6 0 0 1-1.5.9l-.3 1.8h-3l-.3-1.8a8.6 8.6 0 0 1-1.5-.9l-1.7.6-1.5-2.6L9.3 15a8.5 8.5 0 0 1 0-1.8L7.9 12l1.5-2.6 1.7.6c.5-.4 1-.7 1.5-.9l.3-1.8h3l.3 1.8c.5.2 1 .5 1.5.9l1.7-.6 1.5 2.6-1.4 1.2c.1.6.1 1.2-.1 1.8Z" transform="translate(-2 -2)"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10Z"/><path d="M9 21v-7h6v7"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="m15 5 4 4M4 20l4.5-1 11-11a2.8 2.8 0 0 0-4-4l-11 11L4 20Z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 3h4M6 7l1 14h10l1-14M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M5 5 19 19M19 5 5 19"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="m3 17 7-7 4 4 7-8M15 6h6v6"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 17v4h16v-4"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M9 12a3 3 0 0 1 6 0M12 11v3"/></symbol>
+</svg>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="mark"><svg class="icon" style="height:24px;width:24px;stroke-width:2.35"><use href="#i-activity"/></svg></div><div><div class="brand-title">练记</div><div class="brand-en">LIFT LOG</div></div></div>
+    <button type="button" class="icon-btn" id="open-settings" aria-label="设置与数据备份"><svg class="icon"><use href="#i-settings"/></svg></button>
+  </header>
+
+  <main>
+    <section class="view" id="view-home" aria-labelledby="home-title">
+      <div class="eyebrow" id="today-label">YOUR JOURNEY</div>
+      <h1 id="home-title">每一点进步，都算数。</h1>
+      <p class="subline">练什么，涨多少，都有迹可循。</p>
+      <div class="hero">
+        <div class="hero-top"><span>当前体重</span><button type="button" class="goal-pill" id="goal-quick" aria-label="修改目标体重"><span id="goal-text">目标 60.0 kg</span><svg class="icon" style="width:13px;height:13px"><use href="#i-chevron"/></svg></button></div>
+        <div class="hero-number"><span id="hero-weight">—</span><span class="hero-unit">kg</span></div>
+        <div class="hero-bottom"><span id="hero-change">记录第一次体重，开始追踪</span><span id="hero-remaining"></span></div>
+        <div class="progress" role="progressbar" aria-label="体重目标进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="goal-progress"></div></div>
+      </div>
+      <div class="mini-stats">
+        <div class="stat"><div class="stat-name">近 30 天训练</div><div class="stat-value"><span id="training-days">0</span><span class="stat-unit">天</span></div></div>
+        <div class="stat"><div class="stat-name">累计记录</div><div class="stat-value"><span id="total-entries">0</span><span class="stat-unit">天</span></div></div>
+      </div>
+      <div class="section-head"><h2>体重趋势</h2><span class="label-mini">稳步前进就很好</span></div>
+      <div class="chart-card">
+        <div class="chart-top"><div><h3 id="chart-stat">暂无数据</h3><p class="muted" id="chart-caption">开始记录后展示变化</p></div><div class="range-picker" aria-label="曲线时间范围"><button type="button" class="range-btn active" data-range="30">30天</button><button type="button" class="range-btn" data-range="90">90天</button><button type="button" class="range-btn" data-range="all">全部</button></div></div>
+        <div class="chart-box" id="weight-chart" role="img" aria-label="体重变化曲线"></div>
+      </div>
+      <div class="section-head"><h2>最近训练</h2><button type="button" class="link-btn" id="see-history">查看全部</button></div>
+      <div class="recent-card"><div class="recent-list" id="recent-list"></div></div>
+    </section>
+
+    <section class="view" id="view-add" hidden aria-labelledby="add-title">
+      <div class="eyebrow">NEW ENTRY</div><h1 id="add-title">记下今天。</h1><p class="subline">只填你想记录的内容，其他都能留空。</p>
+      <form id="record-form" novalidate>
+        <div class="form-card" style="margin-top:25px">
+          <div class="form-top"><h2>记录日期</h2><span class="badge-neutral" id="record-mode">新记录</span></div>
+          <label class="sr-only" for="entry-date">选择日期</label><input class="field-input" type="date" id="entry-date" required>
+          <p class="help">每天一条；选择已有日期，可直接修改那天的记录。</p>
+        </div>
+        <div class="form-card">
+          <h2 style="margin-bottom:20px">训练部位</h2>
+          <div class="chips" id="part-chips" aria-label="选择训练部位，可多选"></div>
+          <p class="help">可以多选。选“休息”表示当天没有训练。</p>
+        </div>
+        <div class="form-card">
+          <label class="field-title" for="entry-weight" style="display:block">体重 <span style="font-size:12px;color:var(--muted);font-weight:500">/ kg · 选填</span></label>
+          <input class="field-input" id="entry-weight" inputmode="decimal" type="text" autocomplete="off" placeholder="例如 55.5" maxlength="6">
+          <p class="help">建议早起上完厕所后称重；没称就留空。</p>
+        </div>
+        <div class="form-card">
+          <button type="button" class="note-toggle" id="toggle-notes"><svg class="icon"><use href="#i-plus"/></svg><span id="note-toggle-label">添加备注（可选）</span></button>
+          <div class="note-wrap" id="note-wrap" hidden><label class="sr-only" for="entry-note">训练备注</label><textarea class="field-input" id="entry-note" maxlength="120" placeholder="例如：今天练胸，卧推状态不错"></textarea></div>
+        </div>
+        <div id="edit-notice" class="inline-status" hidden>已载入这天的记录。保存后会更新，不会重复新增。</div>
+        <button type="submit" class="primary" id="save-entry"><svg class="icon"><use href="#i-check"/></svg><span id="save-label">保存记录</span></button>
+        <p class="save-hint">所有记录仅保存在这台设备的当前网页应用里。</p>
+      </form>
+    </section>
+
+    <section class="view" id="view-history" hidden aria-labelledby="hist-title">
+      <div class="eyebrow">ALL ENTRIES</div><h1 id="hist-title">记录，都在这里。</h1><p class="subline">按日期排列，可随时修改或删除。</p>
+      <div class="filter" aria-label="筛选记录"><button type="button" class="filter-btn active" data-filter="all">全部</button><button type="button" class="filter-btn" data-filter="training">训练</button><button type="button" class="filter-btn" data-filter="weight">体重</button></div>
+      <div class="history-list" id="history-list"></div>
+    </section>
+  </main>
+</div>
+
+<nav class="bottom-nav" aria-label="底部导航">
+  <button type="button" class="nav-btn active" data-view="home" aria-current="page"><svg class="icon"><use href="#i-home"/></svg><span>概览</span></button>
+  <button type="button" class="nav-btn nav-add" data-view="add"><svg class="icon"><use href="#i-plus"/></svg><span>记一笔</span></button>
+  <button type="button" class="nav-btn" data-view="history"><svg class="icon"><use href="#i-calendar"/></svg><span>历史</span></button>
+</nav>
+
+<div class="modal-backdrop" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-handle"></div><div class="sheet-head"><h2 id="sheet-title" class="sheet-title">设置与备份</h2><button type="button" class="icon-btn" id="close-modal" aria-label="关闭弹窗" style="width:36px;height:36px;border-radius:12px"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<input id="import-file" type="file" accept=".json,application/json" hidden>
+<script>
+(()=>{
+  'use strict';
+  const KEY='lianji-fitness-v1';
+  const PARTS=['胸','背','肩','腿','手臂','核心','有氧','休息'];
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const icon=(id,cls='icon')=>`<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
+  const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+  const isDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(new Date(s+'T12:00:00').getTime())&&new Date(s+'T12:00:00').toLocaleDateString('sv-SE')===s;
+  const fmtDate=s=>{const [y,m,d]=s.split('-');return `${Number(m)}月${Number(d)}日`};
+  const fmtWeek=s=>'星期'+'日一二三四五六'[new Date(s+'T12:00:00').getDay()];
+  const fmtNum=n=>Number(n).toFixed(1);
+  const dateDiff=(a,b)=>Math.round((new Date(a+'T12:00:00')-new Date(b+'T12:00:00'))/86400000);
+  let state={goal:60,entries:[]},view='home',selected=new Set(),chartRange='30',histFilter='all',notesOpen=false,toastTimer=null,returnFocus=null;
+  function normalized(raw){
+    const data=raw&&typeof raw==='object'?raw:{};
+    const goal=Number(data.goal);
+    const map=new Map();
+    if(Array.isArray(data.entries)){
+      for(const e of data.entries.slice(0,10000)){
+        if(!e||!isDate(e.date)||e.date>today())continue;
+        let parts=Array.isArray(e.parts)?[...new Set(e.parts.filter(x=>PARTS.includes(x)))]:[];
+        if(parts.includes('休息'))parts=['休息'];
+        const n=e.weight===''||e.weight===null||e.weight===undefined?null:Number(e.weight);
+        const weight=n!==null&&Number.isFinite(n)&&n>=20&&n<=400?Math.round(n*10)/10:null;
+        if(!parts.length&&weight===null)continue;
+        map.set(e.date,{date:e.date,parts,weight,note:String(e.note||'').slice(0,120)});
+      }
+    }
+    return {goal:Number.isFinite(goal)&&goal>=20&&goal<=400?Math.round(goal*10)/10:60,entries:[...map.values()].sort((a,b)=>b.date.localeCompare(a.date))};
+  }
+  let storageOK=true;
+  try{const str=localStorage.getItem(KEY);if(str)state=normalized(JSON.parse(str));}
+  catch(e){storageOK=false;console.warn('Local storage unavailable or unreadable',e)}
+  function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));storageOK=true;return true}catch(e){storageOK=false;toast('无法保存：请用 Safari 打开正式网址');return false}}
+  function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3000)}
+  function showView(next){view=next;document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!=='view-'+next);document.querySelectorAll('.nav-btn').forEach(btn=>{const active=btn.dataset.view===next;btn.classList.toggle('active',active);if(active)btn.setAttribute('aria-current','page');else btn.removeAttribute('aria-current')});if(next==='home')renderHome();if(next==='history')renderHistory();if(next==='add'){if(!$('entry-date').value)loadDate(today());else updateSaveLabel()}window.scrollTo({top:0,behavior:'auto'})}
+  function allWeight(){return state.entries.filter(e=>e.weight!==null).sort((a,b)=>a.date.localeCompare(b.date))}
+  function renderHome(){
+    const d=new Date();$('today-label').textContent=`${d.getMonth()+1}月${d.getDate()}日 · ${'星期'+'日一二三四五六'[d.getDay()]}`;
+    const w=allWeight(),last=w.at(-1),first=w[0],c=last?.weight;
+    $('goal-text').textContent=`目标 ${fmtNum(state.goal)} kg`;
+    $('hero-weight').textContent=c===undefined?'—':fmtNum(c);
+    $('total-entries').textContent=state.entries.length;
+    $('training-days').textContent=state.entries.filter(e=>e.parts.length&&e.parts[0]!=='休息'&&dateDiff(today(),e.date)>=0&&dateDiff(today(),e.date)<30).length;
+    const bar=$('goal-progress'),progress=$('goal-progress').parentElement;
+    if(!last){$('hero-change').textContent='记录第一次体重，开始追踪';$('hero-remaining').textContent='';bar.style.width='0%';progress.setAttribute('aria-valuenow','0')}
+    else{
+      const delta=c-first.weight;const sign=delta>0?'+':'';
+      $('hero-change').innerHTML=`从起点 <strong>${sign}${fmtNum(delta)} kg</strong>`;
+      const initial=first.weight,goal=state.goal;
+      const reached=goal>=initial?c>=goal:c<=goal;
+      $('hero-remaining').textContent=reached?'已达到目标':`距目标 ${fmtNum(Math.abs(goal-c))} kg`;
+      const denom=goal-initial;
+      const pct=denom===0?(reached?100:0):Math.max(0,Math.min(100,(c-initial)/denom*100));
+      bar.style.width=pct+'%';progress.setAttribute('aria-valuenow',String(Math.round(pct)));
+    }
+    renderChart();
+    const training=state.entries.filter(e=>e.parts.length&&e.parts[0]!=='休息').slice(0,3);
+    const host=$('recent-list');
+    if(!training.length){host.innerHTML='<div class="empty-state-note">还没有训练记录。<br>从一次简单的打卡开始吧。</div>';return}
+    host.innerHTML=training.map(e=>`<div class="recent-row"><div class="recent-icon">${icon('activity')}</div><div class="recent-main"><div class="recent-title">${esc(e.parts.join(' · '))}</div><div class="recent-date">${fmtDate(e.date)} · ${fmtWeek(e.date)}</div></div>${e.weight!==null?`<div class="recent-right">${fmtNum(e.weight)} kg</div>`:''}</div>`).join('');
+  }
+  function renderChart(){
+    let values=allWeight();if(chartRange!=='all')values=values.filter(e=>dateDiff(today(),e.date)<Number(chartRange));
+    document.querySelectorAll('.range-btn').forEach(b=>b.classList.toggle('active',b.dataset.range===chartRange));
+    const chart=$('weight-chart'),last=values.at(-1),first=values[0];
+    if(!values.length){$('chart-stat').textContent='暂无数据';$('chart-caption').textContent='开始记录后展示变化';chart.setAttribute('aria-label','还没有体重记录');chart.innerHTML=`<div class="chart-empty"><div class="empty-graph">${icon('trend')}</div>记录体重后，这里会出现你的曲线。<br><button type="button" id="chart-add" class="link-btn">去记录一次</button></div>`;return}
+    if(values.length===1){$('chart-stat').textContent=`${fmtNum(last.weight)} kg`;$('chart-caption').textContent='已有 1 次称重，继续记录可看趋势'}
+    else{let delta=last.weight-first.weight;let sign=delta>0?'+':'';$('chart-stat').textContent=`${sign}${fmtNum(delta)} kg`;$('chart-caption').textContent=`${fmtDate(first.date)} — ${fmtDate(last.date)} · ${values.length} 次称重`}
+    chart.setAttribute('aria-label',`${values.length}次称重，${fmtDate(first.date)}到${fmtDate(last.date)}，最新${fmtNum(last.weight)}公斤`);
+    const W=344,H=182,L=8,R=300,T=20,B=139;
+    const rawMin=Math.min(...values.map(v=>v.weight)),rawMax=Math.max(...values.map(v=>v.weight));
+    const margin=Math.max(.5,(rawMax-rawMin)*.23);const yMin=rawMin-margin,yMax=rawMax+margin;
+    const y=v=>T+(yMax-v)/(yMax-yMin)*(B-T);
+    const x=v=>values.length===1?(L+R)/2:L+dateDiff(v.date,first.date)/Math.max(1,dateDiff(last.date,first.date))*(R-L);
+    const coords=values.map(e=>({x:x(e),y:y(e.weight)}));const line=coords.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const fill=`${line} L${coords.at(-1).x.toFixed(1)},${B} L${coords[0].x.toFixed(1)},${B} Z`;
+    const grids=[0,.5,1].map(fr=>`<line x1="${L}" y1="${(T+fr*(B-T)).toFixed(1)}" x2="${R}" y2="${(T+fr*(B-T)).toFixed(1)}" stroke="#354039" stroke-dasharray="3 7" stroke-width="1"/>`).join('');
+    const axisLabels=values.length===1?[{txt:fmtDate(first.date),x:(L+R)/2,anchor:'middle'}]:[{txt:fmtDate(first.date),x:L,anchor:'start'},{txt:fmtDate(last.date),x:R,anchor:'end'}];
+    chart.innerHTML=`<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><defs><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c5f28a" stop-opacity=".24"/><stop offset="100%" stop-color="#c5f28a" stop-opacity="0"/></linearGradient></defs>${grids}<text x="${R+8}" y="${T+4}" font-size="10" fill="#8c9695">${fmtNum(rawMax)}</text><text x="${R+8}" y="${B}" font-size="10" fill="#8c9695">${fmtNum(rawMin)}</text>${values.length>1?`<path d="${fill}" fill="url(#shade)"/><path d="${line}" stroke="#c5f28a" stroke-width="2.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`:''}${coords.map((p,i)=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${i===coords.length-1?'5':'2.8'}" fill="#c5f28a" stroke="#16201b" stroke-width="${i===coords.length-1?'2.5':'1'}"/>`).join('')}${axisLabels.map(a=>`<text x="${a.x}" y="171" text-anchor="${a.anchor}" fill="#818b88" font-size="11">${esc(a.txt)}</text>`).join('')}</svg>`;
+  }
+  function renderChips(){
+    $('part-chips').innerHTML=PARTS.map(part=>`<button type="button" class="chip ${selected.has(part)?'selected':''}" data-part="${part}" aria-pressed="${selected.has(part)}">${part}</button>`).join('');
+  }
+  function setNotes(open){notesOpen=!!open;$('note-wrap').hidden=!notesOpen;$('note-toggle-label').textContent=notesOpen?'收起备注':'添加备注（可选）';$('toggle-notes').querySelector('use').setAttribute('href',notesOpen?'#i-close':'#i-plus')}
+  function loadDate(date){if(!isDate(date)||date>today()){toast('只能记录今天或过去的日期');return}
+    $('entry-date').value=date;const e=state.entries.find(e=>e.date===date);selected=new Set(e?.parts||[]);$('entry-weight').value=e?.weight===null||!e?'':fmtNum(e.weight);$('entry-note').value=e?.note||'';setNotes(!!e?.note);renderChips();$('record-mode').textContent=e?'编辑已有记录':'新记录';$('edit-notice').hidden=!e;updateSaveLabel()}
+  function updateSaveLabel(){$('save-label').textContent=state.entries.some(e=>e.date===$('entry-date').value)?'更新记录':'保存记录'}
+  function saveEntry(ev){ev.preventDefault();const date=$('entry-date').value;if(!isDate(date)||date>today()){toast('请选择有效日期');return}
+    let weight=null;const raw=$('entry-weight').value.trim();if(raw){const parsed=Number(raw.replace('，', '.'));if(!Number.isFinite(parsed)||parsed<20||parsed>400||!/^\d{1,3}([.,，]\d{1,2})?$/.test(raw)){toast('体重请输入 20～400 kg 的数字');$('entry-weight').focus();return}weight=Math.round(parsed*10)/10}
+    if(!selected.size&&weight===null){toast('请选择训练部位，或填写体重');return}
+    const isUpdate=state.entries.some(e=>e.date===date);
+    const entry={date,parts:[...selected],weight,note:$('entry-note').value.trim().slice(0,120)};
+    const old=state.entries.filter(e=>e.date!==date);state.entries=[entry,...old].sort((a,b)=>b.date.localeCompare(a.date));
+    if(!persist())return;
+    toast(isUpdate?'已更新这天的记录':'记录已保存');$('entry-date').value='';showView('home');
+  }
+  function renderHistory(){
+    document.querySelectorAll('.filter-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.filter===histFilter));
+    const entries=state.entries.filter(e=>histFilter==='all'||histFilter==='training'&&(!!e.parts.length&&e.parts[0]!=='休息')||histFilter==='weight'&&e.weight!==null);
+    if(!entries.length){$('history-list').innerHTML=`<div class="empty"><div class="empty-icon">${icon('calendar')}</div><div class="empty-title">${state.entries.length?'这个分类还没有记录':'还没有记录'}</div><p class="empty-desc">练完记一下，慢慢就能看到自己的变化。</p><button type="button" class="soft-btn" id="empty-add">去记一笔</button></div>`;return}
+    $('history-list').innerHTML=entries.map(e=>`<article class="history-card"><div class="hist-top"><div><div class="hist-date">${esc(fmtDate(e.date))}<span style="color:var(--muted);font-weight:450;font-size:11px">　${e.date.slice(0,4)}</span></div><div class="hist-week">${fmtWeek(e.date)}</div></div><div class="hist-controls"><button type="button" class="hist-control" data-edit="${e.date}" aria-label="编辑 ${e.date} 的记录">${icon('pen')}</button><button type="button" class="hist-control delete" data-delete="${e.date}" aria-label="删除 ${e.date} 的记录">${icon('trash')}</button></div></div><div class="hist-tags">${e.parts.map(part=>`<span class="tag ${part==='休息'?'rest':''}">${esc(part==='休息'?'休息日':part)}</span>`).join('')}${e.weight!==null?`<span class="tag weight">${fmtNum(e.weight)} kg</span>`:''}</div>${e.note?`<div class="hist-note">${esc(e.note)}</div>`:''}</article>`).join('');
+  }
+  function modal(title,html){returnFocus=document.activeElement;$('sheet-title').textContent=title;$('modal-content').innerHTML=html;$('modal').hidden=false;document.body.classList.add('no-scroll');$('close-modal').focus()}
+  function closeModal(){$('modal').hidden=true;document.body.classList.remove('no-scroll');$('modal-content').innerHTML='';returnFocus?.focus?.()}
+  function settings(){modal('设置与备份',`
+    <div class="settings-card" style="padding:18px 19px;margin-bottom:13px"><div class="field-title">目标体重</div><div style="display:flex;gap:9px"><input id="settings-goal" class="field-input" type="text" inputmode="decimal" value="${fmtNum(state.goal)}" aria-label="目标体重（公斤）"><button type="button" class="secondary" id="save-goal" style="white-space:nowrap;padding:0 20px">保存</button></div><p class="help">单位 kg，随时可以修改。</p></div>
+    <div class="settings-card" style="padding:8px 18px">
+      <button type="button" class="settings-row" id="export-data"><span class="row-text"><strong>导出数据备份</strong><span>保存为 JSON 文件，可存到“文件”或 iCloud</span></span>${icon('download')}</button>
+      <button type="button" class="settings-row" id="import-data"><span class="row-text"><strong>从备份恢复</strong><span>导入此前导出的 JSON 文件</span></span>${icon('upload')}</button>
+      <button type="button" class="settings-row danger" id="clear-data"><span class="row-text"><strong>清空全部记录</strong><span>删除此设备里的训练与体重记录</span></span>${icon('trash')}</button>
+    </div>
+    <p class="sheet-footer">无需登录 · 无订阅 · 数据仅存储在此浏览器／桌面网页应用。清理网站数据、更换手机可能导致丢失，请定期导出备份。Safari 与添加到主屏幕后的应用可能使用不同的数据存储空间。</p>`)}
+  function goalModal(){modal('修改目标体重',`<p class="sheet-desc">设定你的阶段目标，之后也可以随时调整。</p><div class="field"><label class="field-title" for="settings-goal" style="display:block">目标体重（kg）</label><input id="settings-goal" class="field-input" type="text" inputmode="decimal" value="${fmtNum(state.goal)}" autocomplete="off"></div><button type="button" class="primary" id="save-goal">保存目标</button>`);$('settings-goal').focus()}
+  function saveGoal(){const s=$('settings-goal').value.trim();const n=Number(s.replace('，','.'));if(!/^\d{1,3}([.,，]\d{1,2})?$/.test(s)||!Number.isFinite(n)||n<20||n>400){toast('请输入 20～400 kg 的目标体重');return}state.goal=Math.round(n*10)/10;if(!persist())return;closeModal();renderHome();toast('目标已更新')}
+  function confirmSheet(title,desc,action,label='确认删除',danger=true){modal(title,`<p class="sheet-desc">${esc(desc)}</p><div class="modal-buttons"><button type="button" class="secondary" id="cancel-confirm">取消</button><button type="button" class="primary ${danger?'danger-btn':''}" id="accept-confirm">${esc(label)}</button></div>`);$('accept-confirm').addEventListener('click',()=>{closeModal();action()},{once:true})}
+  function exportFile(){const stamp=today();const payload={app:'LianJi',version:1,exportedAt:new Date().toISOString(),goal:state.goal,entries:state.entries};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const filename=`练记备份_${stamp}.json`;
+    // On iPhone, the Share sheet lets users choose "Save to Files". Others get a download.
+    if(typeof File!=='undefined'&&navigator.share&&navigator.canShare){const file=new File([blob],filename,{type:'application/json'});if(navigator.canShare({files:[file]})){navigator.share({files:[file],title:'练记数据备份'}).catch(e=>{if(e.name!=='AbortError')fallbackDownload(blob,filename)});return}}
+    fallbackDownload(blob,filename);
+  }
+  function fallbackDownload(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);toast('备份文件已准备好，请妥善保存')}
+  async function importFile(file){if(!file)return;try{if(file.size>3*1024*1024)throw Error('备份文件过大');const raw=JSON.parse(await file.text());if(!raw||!Array.isArray(raw.entries)||!(raw.app==='LianJi'||raw.version===1))throw Error('不是有效的练记备份');if(raw.entries.length>10000)throw Error('记录数量过多');const incoming=normalized(raw);confirmSheet('导入备份',`即将导入 ${incoming.entries.length} 天记录。导入会覆盖当前设备上的全部记录和目标体重。建议先导出一份当前备份。`,()=>{const old=state;state=incoming;if(!persist()){state=old;return}loadDate(today());renderHome();renderHistory();toast('备份导入成功')},'覆盖并导入',false)}catch(e){toast(e.message||'导入失败，请检查文件')}finally{$('import-file').value=''}}
+  function deleteEntry(date){confirmSheet('删除这天的记录？',`将永久删除 ${fmtDate(date)} 的训练和体重数据。此操作无法撤销。`,()=>{state.entries=state.entries.filter(e=>e.date!==date);if(persist()){renderHistory();renderHome();loadDate(today());toast('记录已删除')}})}
+  function clearAll(){confirmSheet('清空所有记录？','此设备里的全部训练记录、体重记录都会被删除，无法撤销。请先导出备份。',()=>{state.entries=[];if(persist()){loadDate(today());renderHome();renderHistory();toast('已清空记录')}})}
+  document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>{if(btn.dataset.view==='add'&&view!=='add')loadDate(today());showView(btn.dataset.view)}));
+  $('open-settings').addEventListener('click',settings);$('goal-quick').addEventListener('click',goalModal);
+  $('close-modal').addEventListener('click',closeModal);
+  $('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('modal').hidden)closeModal()});
+  $('modal-content').addEventListener('click',e=>{
+    if(e.target.closest('#save-goal'))saveGoal();
+    if(e.target.closest('#export-data'))exportFile();
+    if(e.target.closest('#import-data'))$('import-file').click();
+    if(e.target.closest('#clear-data'))clearAll();
+    if(e.target.closest('#cancel-confirm'))closeModal();
+  });
+  $('import-file').addEventListener('change',e=>importFile(e.target.files?.[0]));
+  $('entry-date').max=today();
+  $('entry-date').addEventListener('change',e=>{if(isDate(e.target.value)&&e.target.value<=today())loadDate(e.target.value);else{toast('请选择今天或过去的日期');loadDate(today())}});
+  $('part-chips').addEventListener('click',e=>{const btn=e.target.closest('[data-part]');if(!btn)return;const p=btn.dataset.part;if(p==='休息')selected=selected.has(p)?new Set():new Set([p]);else{selected.delete('休息');selected.has(p)?selected.delete(p):selected.add(p)}renderChips()});
+  $('record-form').addEventListener('submit',saveEntry);
+  $('toggle-notes').addEventListener('click',()=>setNotes(!notesOpen));
+  $('see-history').addEventListener('click',()=>showView('history'));
+  $('weight-chart').addEventListener('click',e=>{if(e.target.closest('#chart-add')){loadDate(today());showView('add');$('entry-weight').focus()}});
+  document.querySelectorAll('.range-btn').forEach(btn=>btn.addEventListener('click',()=>{chartRange=btn.dataset.range;renderChart()}));
+  document.querySelectorAll('.filter-btn').forEach(btn=>btn.addEventListener('click',()=>{histFilter=btn.dataset.filter;renderHistory()}));
+  $('history-list').addEventListener('click',e=>{const edit=e.target.closest('[data-edit]'),del=e.target.closest('[data-delete]');if(edit){loadDate(edit.dataset.edit);showView('add')}else if(del)deleteEntry(del.dataset.delete);else if(e.target.closest('#empty-add')){loadDate(today());showView('add')}});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){$('entry-date').max=today();if(view==='home')renderHome()}});
+  loadDate(today());renderHome();
+  if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+})();
+</script>
+</body>
+</html>

@@ -62,6 +62,14 @@
     .exercise-item{border:1px solid #30383a;background:#1a2024;border-radius:18px;padding:13px;margin-top:10px}.exercise-head{display:flex;gap:9px;align-items:center}.exercise-head .field-input{flex:1;min-width:0;height:46px}.exercise-remove{height:41px;width:40px;flex-shrink:0;border-radius:12px;border:1px solid #343c3f;background:#242b2d;color:#aeb7b9;display:grid;place-items:center}
     .exercise-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}.exercise-metrics label{display:block;min-width:0;font-size:11px;color:var(--muted)}.exercise-metrics .field-input{height:44px;padding:0 10px;margin-top:6px;font-size:16px}
     .exercise-count{color:var(--muted);font-size:11px;font-weight:500;margin-left:5px}.exercise-add{border:1px solid #3b5140;background:#243127;color:var(--accent);border-radius:13px;padding:0 13px;height:38px;flex-shrink:0;font-size:12px;font-weight:700}
+    .exercise-shortcuts{display:grid;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+    .shortcut-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--sub);font-size:12px}
+    .shortcut-toggle{border:0;background:none;color:var(--accent);padding:0 2px;min-height:36px;font-size:12px}
+    .shortcut-search.field-input{height:44px}
+    .shortcut-list{display:flex;align-items:flex-start;flex-wrap:wrap;gap:6px}
+    .shortcut-list.is-expanded{max-height:184px;overflow-y:auto;overscroll-behavior:contain}
+    .shortcut-chip{min-height:40px;max-width:100%;padding:6px 11px;border:1px solid #3b5140;border-radius:12px;background:#222e26;color:#d2ecc3;font-size:12px;font-weight:600;white-space:normal;text-align:left;overflow-wrap:anywhere}
+    .shortcut-chip:active{background:#354b30}
     .exercise-preview{margin-top:11px;display:grid;gap:6px}.exercise-preview-row{color:#aab5b2;font-size:12px;line-height:1.6;overflow-wrap:anywhere}.exercise-preview-row strong{color:#e6ece6;font-weight:640}
     .calendar-card{background:var(--surface);border:1px solid var(--line);border-radius:25px;padding:18px;margin:22px 0 17px;min-width:0}.calendar-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}.calendar-month{font-size:16px;font-weight:730;letter-spacing:-.4px}.calendar-actions{display:flex;gap:7px;align-items:center}.calendar-step{width:34px;height:34px;border:1px solid #343c40;border-radius:11px;background:#20272a;color:#d4dddb;display:grid;place-items:center}.calendar-step svg{height:17px;width:17px}.calendar-step:disabled{opacity:.25}.calendar-back .icon{transform:rotate(180deg)}.calendar-today{background:none;border:none;color:var(--accent);font-size:12px;padding:7px}
     .calendar-week,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.calendar-week{text-align:center;color:var(--muted);font-size:11px;padding-bottom:8px}.calendar-day{position:relative;border:1px solid transparent;border-radius:13px;background:none;color:#d9dddb;min-height:67px;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-size:13px;font-variant-numeric:tabular-nums;padding:6px 1px 4px;gap:5px}
@@ -143,6 +151,13 @@
         </div>
         <div class="form-card" id="exercise-card">
           <div class="form-top" style="margin-bottom:0"><div><h2>训练动作<span class="exercise-count" id="exercise-count">选填</span></h2><p class="help" style="margin-top:5px">可记录重量、组数和次数</p></div><button type="button" class="exercise-add" id="add-exercise">+ 添加</button></div>
+          <div id="exercise-shortcuts" class="exercise-shortcuts" hidden>
+            <div class="shortcut-heading"><span>用过的动作</span><button type="button" id="toggle-shortcuts" class="shortcut-toggle" aria-expanded="false" aria-controls="shortcut-search shortcut-list" hidden>更多</button></div>
+            <label class="sr-only" for="shortcut-search">搜索用过的动作</label>
+            <input id="shortcut-search" class="field-input shortcut-search" type="search" placeholder="搜索动作" autocomplete="off" hidden>
+            <div class="shortcut-list" id="shortcut-list" aria-label="用过的动作"></div>
+            <p id="shortcut-status" class="help" role="status" hidden></p>
+          </div>
           <div id="exercise-list"></div>
         </div>
         <div class="form-card">
@@ -192,7 +207,7 @@
 (()=>{
   'use strict';
   const KEY='lianji-fitness-v1'; // Keep the original storage key so existing iPhone data remains intact.
-  const APP_VERSION='1.1.3';
+  const APP_VERSION='1.1.4';
   const PARTS=['胸','背','肩','腿','手臂','核心','有氧','休息'];
   const PART_SHORT={'胸':'胸','背':'背','肩':'肩','腿':'腿','手臂':'臂','核心':'核','有氧':'氧','休息':'休'};
   const $=id=>document.getElementById(id);
@@ -204,8 +219,20 @@
   const fmtWeek=s=>'星期'+'日一二三四五六'[new Date(s+'T12:00:00').getDay()];
   const fmtNum=n=>Number(n).toFixed(1);
   const dateDiff=(a,b)=>Math.round((new Date(a+'T12:00:00')-new Date(b+'T12:00:00'))/86400000);
-  let state={goal:60,entries:[]},view='home',selected=new Set(),draftExercises=[],chartRange='30',histFilter='all',notesOpen=false,toastTimer=null,returnFocus=null;
+  let state={goal:60,entries:[],exerciseNames:[]},view='home',selected=new Set(),draftExercises=[],chartRange='30',histFilter='all',notesOpen=false,toastTimer=null,returnFocus=null;
   let calendarMonth=today().slice(0,7),calendarSelected=today(),entryReturnView='home',entryReturnScrollY=0,pendingUpdate=null,ignoredUpdate=null,lastUpdateCheck=0;
+  const exerciseNameKey=name=>name.normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase();
+  function mergeExerciseNames(...groups){
+    const seen=new Set(),names=[];
+    for(const group of groups){
+      for(const value of group){
+        if(typeof value!=='string')continue;
+        const name=value.trim().slice(0,40),key=exerciseNameKey(name);
+        if(key&&!seen.has(key)){seen.add(key);names.push(name)}
+      }
+    }
+    return names;
+  }
   function normalized(raw){
     const data=raw&&typeof raw==='object'?raw:{};
     const goal=Number(data.goal);
@@ -229,7 +256,9 @@
         map.set(e.date,{date:e.date,parts,weight,note:String(e.note||'').slice(0,120),exercises});
       }
     }
-    return {goal:Number.isFinite(goal)&&goal>=20&&goal<=400?Math.round(goal*10)/10:60,entries:[...map.values()].sort((a,b)=>b.date.localeCompare(a.date))};
+    const entries=[...map.values()].sort((a,b)=>b.date.localeCompare(a.date));
+    const exerciseNames=mergeExerciseNames(Array.isArray(data.exerciseNames)?data.exerciseNames:[],entries.flatMap(e=>e.exercises.map(ex=>ex.name)));
+    return {goal:Number.isFinite(goal)&&goal>=20&&goal<=400?Math.round(goal*10)/10:60,entries,exerciseNames};
   }
   let storageOK=true;
   try{const str=localStorage.getItem(KEY);if(str)state=normalized(JSON.parse(str));}
@@ -305,10 +334,49 @@
   function renderChips(){
     $('part-chips').innerHTML=PARTS.map(part=>`<button type="button" class="chip ${selected.has(part)?'selected':''}" data-part="${part}" aria-pressed="${selected.has(part)}">${part}</button>`).join('');
   }
+  const shortcutCanAdd=()=>draftExercises.length<16||Boolean(draftExercises.length&&!String(draftExercises.at(-1).name??'').trim());
+  function refreshShortcutButtons(){
+    const disabled=!shortcutCanAdd();
+    for(const button of $('shortcut-list').children)button.disabled=disabled;
+  }
+  function renderExerciseShortcuts(){
+    const search=$('shortcut-search'),toggle=$('toggle-shortcuts'),list=$('shortcut-list'),status=$('shortcut-status');
+    const names=state.exerciseNames,showMore=names.length>3,expanded=showMore&&toggle.getAttribute('aria-expanded')==='true';
+    $('exercise-shortcuts').hidden=names.length===0;
+    toggle.hidden=!showMore;
+    toggle.textContent=expanded?'收起':'更多';
+    search.hidden=!expanded;
+    list.classList.toggle('is-expanded',expanded);
+    const query=expanded?exerciseNameKey(search.value):'';
+    const matches=query?names.filter(name=>exerciseNameKey(name).includes(query)):names;
+    const shown=matches.slice(0,expanded?24:3);
+    const fragment=document.createDocumentFragment();
+    for(const name of shown){
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='shortcut-chip';
+      button.textContent=name;
+      button.dataset.exerciseName=name;
+      fragment.append(button);
+    }
+    list.replaceChildren(fragment);
+    list.scrollTop=0;
+    status.textContent=!matches.length&&query?'没找到这个动作，可以点「+ 添加」手动输入。':expanded&&matches.length>shown.length?'还有更多动作，输入名称可以查找。':'';
+    status.hidden=!status.textContent;
+    refreshShortcutButtons();
+  }
+  function chooseExerciseName(name){
+    if(selected.has('休息')||!shortcutCanAdd())return;
+    const last=draftExercises.at(-1);
+    if(last&&!String(last.name??'').trim())last.name=name;
+    else draftExercises.push({name,kg:'',sets:'',reps:''});
+    renderExercises();
+  }
   function renderExercises(){
     $('exercise-card').hidden=selected.has('休息');
     $('exercise-count').textContent=draftExercises.length?`${draftExercises.length} 个`:'选填';
     $('add-exercise').disabled=draftExercises.length>=16;
+    refreshShortcutButtons();
     $('exercise-list').innerHTML=draftExercises.map((ex,i)=>`<div class="exercise-item" data-exercise="${i}"><div class="exercise-head"><label class="sr-only" for="ex-name-${i}">第${i+1}个动作名称</label><input id="ex-name-${i}" class="field-input" data-ex-field="name" placeholder="动作名称，例如 上斜卧推" maxlength="40" value="${esc(ex.name)}" autocomplete="off"><button type="button" class="exercise-remove" data-remove-ex="${i}" aria-label="删除第${i+1}个动作">${icon('trash')}</button></div><div class="exercise-metrics"><label>重量 kg<input class="field-input" data-ex-field="kg" inputmode="decimal" type="text" maxlength="6" placeholder="选填" value="${esc(ex.kg??'')}" autocomplete="off"></label><label>组数<input class="field-input" data-ex-field="sets" inputmode="numeric" type="text" maxlength="2" placeholder="选填" value="${esc(ex.sets??'')}" autocomplete="off"></label><label>次数 / 组<input class="field-input" data-ex-field="reps" inputmode="numeric" type="text" maxlength="3" placeholder="选填" value="${esc(ex.reps??'')}" autocomplete="off"></label></div></div>`).join('');
   }
   function readExercises(){
@@ -333,7 +401,7 @@
   }
   function setNotes(open){notesOpen=!!open;$('note-wrap').hidden=!notesOpen;$('note-toggle-label').textContent=notesOpen?'收起备注':'添加备注（可选）';$('toggle-notes').querySelector('use').setAttribute('href',notesOpen?'#i-close':'#i-plus')}
   function loadDate(date){if(!isDate(date)||date>today()){toast('只能记录今天或过去的日期');return}
-    $('entry-date').value=date;const e=state.entries.find(e=>e.date===date);selected=new Set(e?.parts||[]);$('entry-weight').value=e?.weight===null||!e?'':fmtNum(e.weight);$('entry-note').value=e?.note||'';draftExercises=(e?.exercises||[]).map(ex=>({...ex}));setNotes(!!e?.note);renderChips();renderExercises();$('record-mode').textContent=e?'编辑已有记录':'新记录';$('edit-notice').hidden=!e;updateSaveLabel()}
+    $('entry-date').value=date;const e=state.entries.find(e=>e.date===date);selected=new Set(e?.parts||[]);$('entry-weight').value=e?.weight===null||!e?'':fmtNum(e.weight);$('entry-note').value=e?.note||'';draftExercises=(e?.exercises||[]).map(ex=>({...ex}));setNotes(!!e?.note);renderChips();renderExercises();$('toggle-shortcuts').setAttribute('aria-expanded','false');$('shortcut-search').value='';renderExerciseShortcuts();$('record-mode').textContent=e?'编辑已有记录':'新记录';$('edit-notice').hidden=!e;updateSaveLabel()}
   function updateSaveLabel(){$('save-label').textContent=state.entries.some(e=>e.date===$('entry-date').value)?'更新记录':'保存记录'}
   function saveEntry(ev){ev.preventDefault();const date=$('entry-date').value;if(!isDate(date)||date>today()){toast('请选择有效日期');return}
     let weight=null;const raw=$('entry-weight').value.trim();if(raw){const parsed=Number(raw.replace('，', '.'));if(!Number.isFinite(parsed)||parsed<20||parsed>400||!/^\d{1,3}([.,，]\d{1,2})?$/.test(raw)){toast('体重请输入 20～400 kg 的数字');$('entry-weight').focus();return}weight=Math.round(parsed*10)/10}
@@ -341,8 +409,10 @@
     if(!selected.size&&weight===null&&!exercises.length){toast('请选择训练部位、填写动作，或记录体重');return}
     const isUpdate=state.entries.some(e=>e.date===date);
     const entry={date,parts:[...selected],weight,note:$('entry-note').value.trim().slice(0,120),exercises};
-    const previousEntries=state.entries;state.entries=[entry,...state.entries.filter(e=>e.date!==date)].sort((a,b)=>b.date.localeCompare(a.date));
-    if(!persist()){state.entries=previousEntries;return}
+    const previous=state;
+    state={...state,entries:[entry,...state.entries.filter(e=>e.date!==date)].sort((a,b)=>b.date.localeCompare(a.date)),
+      exerciseNames:mergeExerciseNames(exercises.map(ex=>ex.name),state.exerciseNames)};
+    if(!persist()){state=previous;return}
     toast(isUpdate?'已更新这天的记录':'记录已保存');$('entry-date').value='';const destination=entryReturnView==='history'?'history':'home';if(destination==='history'){calendarMonth=date.slice(0,7);calendarSelected=date}showView(destination,{restoreEntryPosition:true});
   }
   function renderCalendar(){
@@ -392,13 +462,13 @@
       <button type="button" class="settings-row" id="export-data"><span class="row-text"><strong>导出数据备份</strong><span>保存为 JSON 文件，可存到“文件”或 iCloud</span></span>${icon('download')}</button>
       <button type="button" class="settings-row" id="import-data"><span class="row-text"><strong>从备份恢复</strong><span>导入此前导出的 JSON 文件</span></span>${icon('upload')}</button>
       <button type="button" class="settings-row" id="check-update"><span class="row-text"><strong>检查版本更新</strong><span>当前 v${APP_VERSION} · 自动检测新版</span></span>${icon('trend')}</button>
-      <button type="button" class="settings-row danger" id="clear-data"><span class="row-text"><strong>清空全部记录</strong><span>删除此设备里的训练与体重记录</span></span>${icon('trash')}</button>
+      <button type="button" class="settings-row danger" id="clear-data"><span class="row-text"><strong>清空全部记录</strong><span>删除此设备里的训练、体重记录和动作快捷选项</span></span>${icon('trash')}</button>
     </div>
     <p class="sheet-footer">练记 v${APP_VERSION} · 无需登录 · 无订阅 · 数据仅存储在此浏览器／桌面网页应用。清理网站数据、更换手机可能导致丢失，请定期导出备份。Safari 与添加到主屏幕后的应用可能使用不同的数据存储空间。</p>`)}
   function goalModal(){modal('修改目标体重',`<p class="sheet-desc">设定你的阶段目标，之后也可以随时调整。</p><div class="field"><label class="field-title" for="settings-goal" style="display:block">目标体重（kg）</label><input id="settings-goal" class="field-input" type="text" inputmode="decimal" value="${fmtNum(state.goal)}" autocomplete="off"></div><button type="button" class="primary" id="save-goal">保存目标</button>`);$('settings-goal').focus()}
   function saveGoal(){const s=$('settings-goal').value.trim();const n=Number(s.replace('，','.'));if(!/^\d{1,3}([.,，]\d{1,2})?$/.test(s)||!Number.isFinite(n)||n<20||n>400){toast('请输入 20～400 kg 的目标体重');return}const previousGoal=state.goal;state.goal=Math.round(n*10)/10;if(!persist()){state.goal=previousGoal;return}closeModal();renderHome();toast('目标已更新')}
   function confirmSheet(title,desc,action,label='确认删除',danger=true){modal(title,`<p class="sheet-desc">${esc(desc)}</p><div class="modal-buttons"><button type="button" class="secondary" id="cancel-confirm">取消</button><button type="button" class="primary ${danger?'danger-btn':''}" id="accept-confirm">${esc(label)}</button></div>`);$('accept-confirm').addEventListener('click',()=>{closeModal();action()},{once:true})}
-  function exportFile(){const stamp=today();const payload={app:'LianJi',version:2,appVersion:APP_VERSION,exportedAt:new Date().toISOString(),goal:state.goal,entries:state.entries};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const filename=`练记备份_${stamp}.json`;
+  function exportFile(){const stamp=today();const payload={app:'LianJi',version:2,appVersion:APP_VERSION,exportedAt:new Date().toISOString(),goal:state.goal,entries:state.entries,exerciseNames:state.exerciseNames};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const filename=`练记备份_${stamp}.json`;
     // On iPhone, the Share sheet lets users choose "Save to Files". Others get a download.
     if(typeof File!=='undefined'&&navigator.share&&navigator.canShare){const file=new File([blob],filename,{type:'application/json'});if(navigator.canShare({files:[file]})){navigator.share({files:[file],title:'练记数据备份'}).catch(e=>{if(e.name!=='AbortError')fallbackDownload(blob,filename)});return}}
     fallbackDownload(blob,filename);
@@ -406,7 +476,7 @@
   function fallbackDownload(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);toast('备份文件已准备好，请妥善保存')}
   async function importFile(file){if(!file)return;try{if(file.size>3*1024*1024)throw Error('备份文件过大');const raw=JSON.parse(await file.text());if(!raw||!Array.isArray(raw.entries)||!(raw.app==='LianJi'&&(raw.version===1||raw.version===2)))throw Error('不是有效的练记备份');if(raw.entries.length>10000)throw Error('记录数量过多');const incoming=normalized(raw);confirmSheet('导入备份',`即将导入 ${incoming.entries.length} 天记录。导入会覆盖当前设备上的全部记录和目标体重。建议先导出一份当前备份。`,()=>{const old=state;state=incoming;if(!persist()){state=old;return}loadDate(today());renderHome();renderHistory();toast('备份导入成功')},'覆盖并导入',false)}catch(e){toast(e.message||'导入失败，请检查文件')}finally{$('import-file').value=''}}
   function deleteEntry(date){confirmSheet('删除这天的记录？',`将永久删除 ${fmtDate(date)} 的训练和体重数据。此操作无法撤销。`,()=>{const previousEntries=state.entries;state.entries=state.entries.filter(e=>e.date!==date);if(!persist()){state.entries=previousEntries;return}renderHistory();renderHome();loadDate(today());toast('记录已删除')})}
-  function clearAll(){confirmSheet('清空所有记录？','此设备里的全部训练记录、体重记录都会被删除，无法撤销。请先导出备份。',()=>{const previousEntries=state.entries;state.entries=[];if(!persist()){state.entries=previousEntries;return}loadDate(today());renderHome();renderHistory();toast('已清空记录')})}
+  function clearAll(){confirmSheet('清空所有记录？','此设备里的训练记录、体重记录和动作快捷选项都会被删除，无法撤销。请先导出备份。',()=>{const previous=state;state={...state,entries:[],exerciseNames:[]};if(!persist()){state=previous;return}loadDate(today());renderHome();renderHistory();toast('已清空记录')})}
   function isNewer(remote,local){
     const a=String(remote).split('.').map(Number),b=String(local).split('.').map(Number);
     if(a.length!==3||b.length!==3||[...a,...b].some(x=>!Number.isInteger(x)||x<0))return false;
@@ -449,7 +519,21 @@
   $('part-chips').addEventListener('click',e=>{const btn=e.target.closest('[data-part]');if(!btn)return;const p=btn.dataset.part;if(p==='休息')selected=selected.has(p)?new Set():new Set([p]);else{selected.delete('休息');selected.has(p)?selected.delete(p):selected.add(p)}renderChips();renderExercises()});
   $('record-form').addEventListener('submit',saveEntry);
   $('add-exercise').addEventListener('click',()=>{if(draftExercises.length>=16)return;draftExercises.push({name:'',kg:'',sets:'',reps:''});renderExercises();$('exercise-list').lastElementChild?.querySelector('[data-ex-field="name"]')?.focus()});
-  $('exercise-list').addEventListener('input',e=>{const inp=e.target.closest('[data-ex-field]'),row=e.target.closest('[data-exercise]');if(!inp||!row)return;const ex=draftExercises[Number(row.dataset.exercise)];if(ex)ex[inp.dataset.exField]=inp.value});
+  $('toggle-shortcuts').addEventListener('click',()=>{
+    const toggle=$('toggle-shortcuts'),expand=toggle.getAttribute('aria-expanded')!=='true';
+    toggle.setAttribute('aria-expanded',String(expand));
+    if(!expand)$('shortcut-search').value='';
+    renderExerciseShortcuts();
+  });
+  $('shortcut-search').addEventListener('input',renderExerciseShortcuts);
+  $('shortcut-search').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing)e.preventDefault()});
+  $('shortcut-list').addEventListener('click',e=>{
+    const button=e.target.closest('[data-exercise-name]');
+    if(!button||button.disabled)return;
+    if(document.activeElement===$('shortcut-search'))$('shortcut-search').blur();
+    chooseExerciseName(button.dataset.exerciseName);
+  });
+  $('exercise-list').addEventListener('input',e=>{const inp=e.target.closest('[data-ex-field]'),row=e.target.closest('[data-exercise]');if(!inp||!row)return;const ex=draftExercises[Number(row.dataset.exercise)];if(ex){ex[inp.dataset.exField]=inp.value;if(inp.dataset.exField==='name')refreshShortcutButtons()}});
   $('exercise-list').addEventListener('click',e=>{const btn=e.target.closest('[data-remove-ex]');if(!btn)return;draftExercises.splice(Number(btn.dataset.removeEx),1);renderExercises()});
   $('calendar-prev').addEventListener('click',()=>changeCalendarMonth(-1));
   $('calendar-next').addEventListener('click',()=>changeCalendarMonth(1));

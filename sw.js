@@ -1,5 +1,5 @@
-/* 练记 v1.1.3：导航网络优先，离线读取本地缓存；版本查询始终访问网络。 */
-const CACHE='lianji-v1.1.3';
+/* 练记 v1.1.4：导航网络优先，离线读取本地缓存；版本查询始终访问网络。 */
+const CACHE='lianji-v1.1.4';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./version.json','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
